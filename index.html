@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChSB Helper — Математика 9 класс (Алгебра ЧСБ)</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for crisp mathematical formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="navbar">
+            <div class="nav-left">
+                <div class="brand-badge">
+                    <span class="brand-dot"></span>
+                    <span class="brand-name">ChSB <span class="highlight">Master 9</span></span>
+                    <span class="class-pill">Алгебра • 9-sinf</span>
+                </div>
+            </div>
+
+            <div class="nav-center stats-row">
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="score">Баллы</span>
+                    <span class="stat-val"><span id="score-counter">0</span><span class="sub"> / 40</span></span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="solved">Решено</span>
+                    <span class="stat-val"><span id="solved-counter">0</span><span class="sub"> / 16</span></span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label" data-i18n="accuracy">Точность</span>
+                    <span class="stat-val" id="accuracy-counter">0%</span>
+                </div>
+            </div>
+
+            <div class="nav-right">
+                <!-- Language Toggle -->
+                <button class="icon-btn lang-btn" id="lang-toggle" title="Тилни ўзгартириш / Сменить язык">
+                    <span class="lang-text">RU</span>
+                </button>
+                <!-- Mode Switcher -->
+                <button class="mode-pill-btn active" id="mode-practice" data-i18n="practiceMode">Тренажёр</button>
+                <button class="mode-pill-btn" id="mode-exam" data-i18n="examMode">Экзамен</button>
+            </div>
+        </header>
+
+        <!-- Sub-bar: Filters & Exam Timer -->
+        <div class="sub-header">
+            <div class="filters-scroll">
+                <button class="filter-chip active" data-filter="all" data-i18n="filterAll">Все задания (16)</button>
+                <button class="filter-chip chip-mistakes" data-filter="mistakes" data-i18n="filterMistakes">⚠️ Ошибки твоего теста (9)</button>
+                <button class="filter-chip" data-filter="functions" data-i18n="filterFuncs">Параболы и функции</button>
+                <button class="filter-chip" data-filter="inequalities" data-i18n="filterIneqs">Неравенства</button>
+                <button class="filter-chip" data-filter="equations" data-i18n="filterEqs">Уравнения и прикладные</button>
+            </div>
+
+            <div class="timer-badge hidden" id="exam-timer-wrapper">
+                <span class="timer-icon">⏱️</span>
+                <span id="exam-timer">20:00</span>
+            </div>
+        </div>
+
+        <!-- Main Layout: Question Grid & Interactive Viewer -->
+        <main class="main-content">
+            <!-- Sidebar / Question Navigation -->
+            <aside class="questions-sidebar">
+                <div class="sidebar-title">
+                    <span data-i18n="taskNav">Вопросы ЧСБ</span>
+                    <button class="btn-reset" id="btn-reset-all" title="Сбросить прогресс">🔄</button>
+                </div>
+                <div class="questions-grid" id="questions-grid">
+                    <!-- Populated by JS: buttons 1..16 with state indicators -->
+                </div>
+
+                <div class="sidebar-card cheat-sheet-card">
+                    <div class="card-icon">⚡</div>
+                    <div class="card-text">
+                        <strong data-i18n="formulaCheatTitle">Шпаргалка к ЧСБ</strong>
+                        <p data-i18n="formulaCheatDesc">Все ключевые формулы 9 класса в один клик</p>
+                    </div>
+                    <button class="btn-sm btn-cheat" id="open-cheatsheet-btn" data-i18n="openCheatsheet">Открыть</button>
+                </div>
+            </aside>
+
+            <!-- Question Showcase Area -->
+            <section class="task-viewer">
+                <div class="task-card" id="task-card">
+                    <!-- Top meta of active task -->
+                    <div class="task-meta">
+                        <div class="meta-left">
+                            <span class="task-number" id="task-badge">Задание 1</span>
+                            <span class="task-topic" id="task-topic">Квадратичная функция</span>
+                            <span class="task-difficulty" id="task-diff">Bilish (1.5 балла)</span>
+                        </div>
+                        <div class="meta-right">
+                            <span class="your-prev-status" id="prev-status-pill">В демо-тесте: Не решено</span>
+                        </div>
+                    </div>
+
+                    <!-- Task Question Statement -->
+                    <div class="task-statement">
+                        <div class="lang-uz-text" id="statement-uz"></div>
+                        <div class="lang-ru-text" id="statement-ru"></div>
+                    </div>
+
+                    <!-- Visual attachment container if available (e.g. graph or illustration) -->
+                    <div class="task-visual" id="task-visual-area"></div>
+
+                    <!-- Interactive Options / Form -->
+                    <div class="options-container" id="options-container">
+                        <!-- Options generated dynamically -->
+                    </div>
+
+                    <!-- Action Bar -->
+                    <div class="task-actions">
+                        <button class="btn btn-check" id="btn-check-answer">
+                            <span class="btn-icon">✓</span>
+                            <span data-i18n="checkBtn">Проверить ответ</span>
+                        </button>
+                        <button class="btn btn-explain" id="btn-toggle-explain">
+                            <span class="btn-icon">💡</span>
+                            <span data-i18n="explainBtn">Объяснить решение и формулы</span>
+                        </button>
+                        <div class="nav-prev-next">
+                            <button class="btn-icon-nav" id="btn-prev-task" title="Предыдущее">←</button>
+                            <button class="btn-icon-nav" id="btn-next-task" title="Следующее">→</button>
+                        </div>
+                    </div>
+
+                    <!-- Feedback message (Correct / Incorrect) -->
+                    <div class="feedback-banner hidden" id="feedback-banner"></div>
+
+                    <!-- Comprehensive Explanation Drawer / Card -->
+                    <div class="explanation-panel hidden" id="explanation-panel">
+                        <div class="panel-header">
+                            <div class="panel-header-title">
+                                <span class="sparkle">✨</span>
+                                <h3 data-i18n="explainHeader">Подробный разбор, формулы и теория</h3>
+                            </div>
+                            <button class="btn-close-panel" id="btn-close-explain">✕</button>
+                        </div>
+
+                        <!-- 1. Step-by-step Solution -->
+                        <div class="explain-section">
+                            <h4 class="section-title">
+                                <span class="step-num">1</span>
+                                <span data-i18n="stepsTitle">Пошаговое решение</span>
+                            </h4>
+                            <div class="steps-content" id="explain-steps"></div>
+                        </div>
+
+                        <!-- 2. Visual Interactive Object (Canvas / SVG plot or number line) -->
+                        <div class="explain-section" id="explain-visual-section">
+                            <h4 class="section-title">
+                                <span class="step-num">2</span>
+                                <span data-i18n="visualTitle">Интерактивная визуализация</span>
+                            </h4>
+                            <div class="interactive-diagram-box" id="interactive-diagram-box"></div>
+                        </div>
+
+                        <!-- 3. Formulas and Rules Used -->
+                        <div class="explain-section">
+                            <h4 class="section-title">
+                                <span class="step-num">3</span>
+                                <span data-i18n="formulasTitle">Используемые формулы и теоремы</span>
+                            </h4>
+                            <div class="formulas-grid" id="explain-formulas"></div>
+                        </div>
+
+                        <!-- 4. Common Traps / Pitfalls -->
+                        <div class="explain-section trap-section">
+                            <h4 class="section-title">
+                                <span class="step-num">⚠️</span>
+                                <span data-i18n="trapTitle">Ловушка в тесте (почему ученики ошибаются)</span>
+                            </h4>
+                            <div class="trap-content" id="explain-trap"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Cheatsheet Modal -->
+    <div class="modal-backdrop hidden" id="cheatsheet-modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>📖 Формулы и правила ЧСБ (9 класс)</h3>
+                <button class="btn-close-modal" id="btn-close-modal">✕</button>
+            </div>
+            <div class="modal-body" id="cheatsheet-content">
+                <!-- Populated with full formulas: Vieta, Parabolas, Discriminant, Interval signs -->
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
